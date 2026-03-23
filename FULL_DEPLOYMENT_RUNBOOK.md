@@ -80,6 +80,12 @@ PAT requirements:
 - Type: classic token is simplest for this setup
 - Scopes: read:packages, write:packages
 
+If you forgot GHCR_PAT:
+- Create a new token at GitHub -> Settings -> Developer settings -> Personal access tokens -> Tokens (classic)
+- Select scopes: read:packages, write:packages
+- Copy token once (you will not be able to view it again)
+- Update GitHub Actions secret GHCR_PAT with the new token
+
 ## 5) First-time server bootstrap on droplet
 
 SSH from Windows:
@@ -122,9 +128,16 @@ Save and exit nano.
 On droplet:
 
     cd /opt/quiz-tutor
-    docker compose -f deploy/docker-compose.prod.yml up -d
-    docker compose -f deploy/docker-compose.prod.yml ps
-    docker compose -f deploy/docker-compose.prod.yml logs backend --tail 100
+    docker compose --env-file .env.backend -f deploy/docker-compose.prod.yml config | head -n 80
+    docker compose --env-file .env.backend -f deploy/docker-compose.prod.yml up -d
+    docker compose --env-file .env.backend -f deploy/docker-compose.prod.yml ps
+    docker compose --env-file .env.backend -f deploy/docker-compose.prod.yml logs backend --tail 100
+
+If backend image pull is unauthorized, login to GHCR on droplet and retry:
+
+    echo "YOUR_GHCR_PAT" | docker login ghcr.io -u "Seth724" --password-stdin
+    docker compose --env-file .env.backend -f deploy/docker-compose.prod.yml pull backend
+    docker compose --env-file .env.backend -f deploy/docker-compose.prod.yml up -d
 
 Health check test:
 
@@ -147,8 +160,8 @@ Check GitHub Actions:
 After workflow success, on droplet:
 
     cd /opt/quiz-tutor
-    docker compose -f deploy/docker-compose.prod.yml ps
-    docker compose -f deploy/docker-compose.prod.yml logs backend --tail 100
+    docker compose --env-file .env.backend -f deploy/docker-compose.prod.yml ps
+    docker compose --env-file .env.backend -f deploy/docker-compose.prod.yml logs backend --tail 100
 
 ## 8) Vercel frontend deployment
 
@@ -161,7 +174,7 @@ In Vercel dashboard:
     NEXT_PUBLIC_API_URL = https://api.quiztutor.sethna.me
 6. Add custom domain:
     quiztutor.sethna.me
-6. Deploy
+7. Deploy
 
 Vercel will auto-deploy on every push to main.
 
@@ -201,7 +214,7 @@ On droplet, refresh compose if needed:
 
     cd /opt/quiz-tutor
     git pull
-    docker compose -f deploy/docker-compose.prod.yml up -d
+    docker compose --env-file .env.backend -f deploy/docker-compose.prod.yml up -d
 
 ## 11) Quick troubleshooting
 
@@ -211,7 +224,13 @@ If SSH says host key changed:
 
 If containers fail to start:
 
-    docker compose -f deploy/docker-compose.prod.yml logs --tail 200
+    docker compose --env-file .env.backend -f deploy/docker-compose.prod.yml logs --tail 200
+
+If you see warnings like GHCR_OWNER or API_DOMAIN not set:
+- You are missing the env substitution file in the compose command.
+- Always run compose as:
+
+    docker compose --env-file .env.backend -f deploy/docker-compose.prod.yml <command>
 
 If backend is up but domain fails:
 - Confirm Cloudflare A record points to droplet IP
