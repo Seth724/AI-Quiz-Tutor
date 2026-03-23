@@ -1,5 +1,5 @@
 # ----- Image source -----
-GHCR_OWNER=Seth724
+GHCR_OWNER=seth724
 IMAGE_TAG=latest
 
 # ----- Public API domain -----

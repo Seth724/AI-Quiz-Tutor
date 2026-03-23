@@ -18,6 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.meta.outputs.image_tag }}
+      ghcr_owner: ${{ steps.meta.outputs.ghcr_owner }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,6 +27,7 @@ jobs:
         id: meta
         run: |
           echo "image_tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          echo "ghcr_owner=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -44,8 +46,8 @@ jobs:
           file: apps/backend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/ai-quiz-tutor-backend:latest
-            ghcr.io/${{ github.repository_owner }}/ai-quiz-tutor-backend:${{ steps.meta.outputs.image_tag }}
+            ghcr.io/${{ steps.meta.outputs.ghcr_owner }}/ai-quiz-tutor-backend:latest
+            ghcr.io/${{ steps.meta.outputs.ghcr_owner }}/ai-quiz-tutor-backend:${{ steps.meta.outputs.image_tag }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -55,7 +57,7 @@ jobs:
       - name: Deploy on DigitalOcean via SSH
         uses: appleboy/ssh-action@v1.0.3
         env:
-          GHCR_OWNER: ${{ github.repository_owner }}
+          GHCR_OWNER: ${{ needs.build-and-push.outputs.ghcr_owner }}
           IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
           API_DOMAIN: ${{ secrets.API_DOMAIN }}
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}

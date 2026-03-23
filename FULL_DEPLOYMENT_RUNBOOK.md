@@ -117,7 +117,7 @@ Set real values in .env.backend:
 - HF_TOKEN
 - MONGODB_URI
 - ANTHROPIC_API_KEY (optional)
-- GHCR_OWNER (your GitHub username)
+- GHCR_OWNER (your GitHub username in lowercase, example: seth724)
 - IMAGE_TAG (latest)
 - API_DOMAIN (api subdomain)
 
