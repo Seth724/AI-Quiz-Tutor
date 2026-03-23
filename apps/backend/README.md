@@ -60,17 +60,17 @@ GROQ_API_KEY=your_groq_key
 HF_TOKEN=your_huggingface_token
 
 # MongoDB Atlas
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/quiz_tutor?retryWrites=true&w=majority
 
 # Clerk (auth - for later)
 CLERK_SECRET_KEY=your_clerk_key
 
 # Optional: SMTP email reminders
-SMTP_HOST=smtp.gmail.com
+SMTP_HOST=
 SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=your_app_password
-SMTP_FROM_EMAIL=your_email@gmail.com
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM_EMAIL=
 SMTP_USE_TLS=true
 ```
 

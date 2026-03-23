@@ -107,7 +107,7 @@ Click "Environment" and add:
 ```
 GROQ_API_KEY=your_groq_api_key_here
 HF_TOKEN=your_huggingface_token_here
-MONGODB_URI=mongodb+srv://quiz-tutor-admin:PASSWORD@quiz-tutor-cluster.xxxxx.mongodb.net/quiz_tutor?retryWrites=true&w=majority&appName=quiztutor
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/quiz_tutor?retryWrites=true&w=majority
 MONGODB_DATABASE=quiz_tutor
 ENVIRONMENT=production
 LOG_LEVEL=INFO
@@ -125,12 +125,17 @@ SUPABASE_BUCKET=documents
 ANTHROPIC_API_KEY=your_anthropic_key_here
 
 # Optional: Email notifications
-SMTP_HOST=smtp.gmail.com
+# Leave these empty unless you enable reminder emails
+SMTP_HOST=
 SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=your_app_password
-SMTP_FROM_EMAIL=noreply@quiztutor.com
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_FROM_EMAIL=
 ```
+
+Notes:
+- Do not commit real credentials to Git.
+- `HF_HOME`, `HF_HUB_CACHE`, and `SENTENCE_TRANSFORMERS_HOME` are optional local cache paths. Set them only if you want custom cache directories on your host.
 
 ### 5. Deploy
 1. Click "Deploy"
