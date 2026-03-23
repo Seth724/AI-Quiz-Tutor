@@ -123,7 +123,7 @@ Set real values in .env.backend:
 
 Save and exit nano.
 
-## 6) First manual container run (sanity check)
+### 6) First manual container run (sanity check)
 
 On droplet:
 
