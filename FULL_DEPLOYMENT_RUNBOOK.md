@@ -103,7 +103,7 @@ Create app folder and clone repo:
 
 Create backend env file:
 
-    cp deploy/.env.server.example .env.backend
+    cp deploy/server.example .env.backend
     nano .env.backend
 
 Set real values in .env.backend:
