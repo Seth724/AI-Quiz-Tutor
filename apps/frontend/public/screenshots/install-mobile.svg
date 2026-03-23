@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="0 0 720 1280" role="img" aria-label="Quiz Tutor mobile screenshot">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1020"/>
+      <stop offset="100%" stop-color="#4c1d95"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="1280" fill="url(#bg)"/>
+  <rect x="46" y="42" width="628" height="1196" rx="30" fill="#ffffff1f" stroke="#ffffff3d"/>
+  <text x="86" y="124" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="38" font-weight="700">Quiz Tutor</text>
+  <text x="86" y="164" fill="#dbeafe" font-family="Segoe UI, Arial, sans-serif" font-size="20">Document chat, quizzes, and planning</text>
+  <rect x="86" y="205" width="250" height="50" rx="14" fill="#7c3aed"/>
+  <text x="116" y="236" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">Ask from PDF</text>
+  <rect x="86" y="288" width="548" height="140" rx="16" fill="#ffffff1f"/>
+  <rect x="86" y="450" width="548" height="140" rx="16" fill="#ffffff1f"/>
+  <rect x="86" y="612" width="548" height="140" rx="16" fill="#ffffff1f"/>
+  <rect x="86" y="774" width="548" height="140" rx="16" fill="#ffffff1f"/>
+  <rect x="86" y="936" width="548" height="140" rx="16" fill="#ffffff1f"/>
+  <text x="86" y="1146" fill="#c4b5fd" font-family="Segoe UI, Arial, sans-serif" font-size="20">Mobile install preview</text>
+</svg>

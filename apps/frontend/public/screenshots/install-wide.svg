@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-label="Quiz Tutor desktop screenshot">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#312e81"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <rect x="56" y="48" width="1168" height="624" rx="26" fill="#ffffff1e" stroke="#ffffff40"/>
+  <text x="96" y="115" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="42" font-weight="700">Quiz Tutor</text>
+  <text x="96" y="155" fill="#dbeafe" font-family="Segoe UI, Arial, sans-serif" font-size="22">AI-powered quiz and study planner</text>
+  <rect x="96" y="192" width="260" height="52" rx="16" fill="#7c3aed"/>
+  <text x="128" y="226" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700">Generate Quiz</text>
+  <rect x="96" y="274" width="1088" height="58" rx="14" fill="#ffffff1f"/>
+  <rect x="96" y="350" width="1088" height="58" rx="14" fill="#ffffff1f"/>
+  <rect x="96" y="426" width="1088" height="58" rx="14" fill="#ffffff1f"/>
+  <rect x="96" y="502" width="1088" height="58" rx="14" fill="#ffffff1f"/>
+  <text x="96" y="628" fill="#c4b5fd" font-family="Segoe UI, Arial, sans-serif" font-size="20">Desktop install preview</text>
+</svg>

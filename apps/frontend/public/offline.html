@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quiz Tutor - Offline</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 20% 20%, #2e1065, #0f172a 60%);
+        color: #eef2ff;
+        font-family: Segoe UI, system-ui, sans-serif;
+      }
+      .card {
+        width: min(92vw, 460px);
+        border: 1px solid rgba(167, 139, 250, 0.4);
+        border-radius: 16px;
+        background: rgba(15, 23, 42, 0.72);
+        backdrop-filter: blur(8px);
+        padding: 24px;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 1.5rem;
+      }
+      p {
+        margin: 0;
+        line-height: 1.5;
+        color: #d8b4fe;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="card">
+      <h1>You are offline</h1>
+      <p>Quiz Tutor will reconnect automatically when your internet is back.</p>
+    </section>
+  </body>
+</html>

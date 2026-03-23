@@ -1,0 +1,53 @@
+# FastAPI Web Framework
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Configuration
+pydantic
+pydantic-settings
+python-dotenv
+
+# MongoDB (from tutorial-3)
+pymongo
+motor
+
+# LlamaIndex Core (from tutorial-3)
+llama-index-core
+llama-index-llms-groq
+llama-index-embeddings-huggingface-api
+llama-index-vector-stores-mongodb
+llama-index-readers-file
+
+# PDF Processing (from tutorial-3 - pdf_rag_simple.py)
+# PDFReader is in llama-index-readers-file (already included)
+
+# OCR Support (from tutorial-3 - simple_ocr.py)
+easyocr
+numpy
+pillow
+pymupdf
+opencv-python-headless
+pillow-heif
+
+# Groq LLM (from tutorial-3)
+groq
+
+# HuggingFace (from tutorial-3)
+huggingface-hub
+
+# Vision Models (Claude + local BLIP fallback)
+anthropic
+torch
+transformers
+
+# Utilities
+httpx
+aiofiles
+supabase
+
+# Production
+gunicorn
+
+# Optional: Docling (for complex PDFs with tables)
+# Install only if needed: pip install llama-index-readers-docling
