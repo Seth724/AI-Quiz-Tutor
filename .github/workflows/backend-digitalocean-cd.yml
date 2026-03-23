@@ -1,0 +1,78 @@
+name: Backend CD (DigitalOcean)
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "apps/backend/**"
+      - "deploy/**"
+      - ".github/workflows/backend-digitalocean-cd.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set image metadata
+        id: meta
+        run: |
+          echo "image_tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/backend
+          file: apps/backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/ai-quiz-tutor-backend:latest
+            ghcr.io/${{ github.repository_owner }}/ai-quiz-tutor-backend:${{ steps.meta.outputs.image_tag }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: ${{ secrets.DO_HOST != '' && secrets.DO_USER != '' && secrets.DO_SSH_KEY != '' && secrets.GHCR_USERNAME != '' && secrets.GHCR_PAT != '' }}
+    steps:
+      - name: Deploy on DigitalOcean via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GHCR_OWNER: ${{ github.repository_owner }}
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+          API_DOMAIN: ${{ secrets.API_DOMAIN }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          script_stop: true
+          envs: GHCR_OWNER,IMAGE_TAG,API_DOMAIN,GHCR_USERNAME,GHCR_PAT
+          script: |
+            set -e
+            cd /opt/quiz-tutor
+            export GHCR_OWNER="$GHCR_OWNER"
+            export IMAGE_TAG="$IMAGE_TAG"
+            export API_DOMAIN="$API_DOMAIN"
+            echo "$GHCR_PAT" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            docker compose -f deploy/docker-compose.prod.yml pull backend
+            docker compose -f deploy/docker-compose.prod.yml up -d backend nginx
+            docker image prune -af --filter "until=72h"

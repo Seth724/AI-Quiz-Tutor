@@ -1,0 +1,35 @@
+services:
+  backend:
+    image: ghcr.io/${GHCR_OWNER}/ai-quiz-tutor-backend:${IMAGE_TAG:-latest}
+    container_name: quiz-tutor-backend
+    restart: unless-stopped
+    env_file:
+      - /opt/quiz-tutor/.env.backend
+    environment:
+      ENVIRONMENT: production
+      LOG_LEVEL: INFO
+      BACKEND_URL: https://${API_DOMAIN}
+      FRONTEND_ORIGIN_REGEX: https://.*\\.vercel\\.app
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: quiz-tutor-nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /opt/quiz-tutor/nginx/quiz-tutor.conf:/etc/nginx/conf.d/default.conf:ro
+      - /opt/quiz-tutor/certs:/etc/nginx/certs:ro
+    environment:
+      API_DOMAIN: ${API_DOMAIN}
