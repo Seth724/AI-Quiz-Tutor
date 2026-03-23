@@ -94,7 +94,7 @@ git push -u origin main
   ```
 - Start Command: 
   ```bash
-  gunicorn -w 4 -k uvicorn.workers.UvicornWorker src.main:app --bind 0.0.0.0:10000 --timeout 120
+   gunicorn -w 1 -k uvicorn.workers.UvicornWorker src.main:app --bind 0.0.0.0:$PORT --timeout 120
   ```
 
 **Pricing Plan:**
@@ -252,6 +252,17 @@ https://your-app.vercel.app
 1. Check Render logs for errors
 2. Verify MONGODB_URI and API keys are correct
 3. Check MongoDB Atlas whitelist includes Render IPs (0.0.0.0/0)
+
+### ❌ "Build failed on python-bidi / easyocr"
+Cause: Render used Python 3.14, but OCR dependencies are more stable on Python 3.11.
+
+Fix:
+1. In Render service settings, set environment variable:
+   - `PYTHON_VERSION=3.11.11`
+2. Confirm runtime is Python in Render.
+3. Clear build cache and redeploy.
+
+Note: This repository also pins `PYTHON_VERSION` in `render.yaml`.
 
 ### ❌ "CORS errors in browser"
 1. Update backend `FRONTEND_ORIGINS` to include Vercel URL

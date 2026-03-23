@@ -48,15 +48,12 @@ class DocumentService:
     
     def __init__(self):
         """Initialize document service"""
-        # Set cache directories (from tutorial-3)
-        os.environ["HF_HOME"] = "D:\\hf_cache"
-        os.environ["HF_HUB_CACHE"] = "D:\\hf_cache\\hub"
-        os.environ["SENTENCE_TRANSFORMERS_HOME"] = "D:\\hf_cache"
+        # Keep HuggingFace cache paths optional and environment-driven.
         os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
-        
-        # Create cache directories
-        for path in [os.environ["HF_HOME"], os.environ["HF_HUB_CACHE"], os.environ["SENTENCE_TRANSFORMERS_HOME"]]:
-            os.makedirs(path, exist_ok=True)
+        for env_name in ("HF_HOME", "HF_HUB_CACHE", "SENTENCE_TRANSFORMERS_HOME"):
+            configured_path = (os.getenv(env_name) or "").strip()
+            if configured_path:
+                os.makedirs(configured_path, exist_ok=True)
         
         # MongoDB connection
         self.mongo_client = MongoClient(settings.MONGODB_URI)
@@ -86,15 +83,32 @@ class DocumentService:
         except Exception:
             print("⚠️ HEIF support not available. Install pillow-heif for iPhone image uploads.")
         
-        # OCR reader (from simple_ocr.py)
-        self.ocr_reader = easyocr.Reader(['en'], gpu=False)
+        # OCR reader is lazily initialized to avoid startup OOM on small instances.
+        self.ocr_reader = None
+        self._ocr_initialized = False
         # EasyOCR is not thread-safe in this app's shared singleton usage.
         self._ocr_lock = threading.Lock()
+        self._ocr_init_lock = threading.Lock()
+
+    def _get_ocr_reader(self):
+        """Create EasyOCR reader on first use, not during API startup."""
+        if self._ocr_initialized and self.ocr_reader is not None:
+            return self.ocr_reader
+
+        with self._ocr_init_lock:
+            if self._ocr_initialized and self.ocr_reader is not None:
+                return self.ocr_reader
+
+            print("ℹ️ Initializing EasyOCR model on demand...")
+            self.ocr_reader = easyocr.Reader(["en"], gpu=False)
+            self._ocr_initialized = True
+            return self.ocr_reader
 
     def _readtext_safe(self, image_array: np.ndarray):
         """Run OCR in a critical section to avoid deadlocks across concurrent uploads."""
+        reader = self._get_ocr_reader()
         with self._ocr_lock:
-            return self.ocr_reader.readtext(image_array)
+            return reader.readtext(image_array)
 
     def detect_processing_mode(self, file_path: str, sample_pages: int = 3) -> ProcessingMode:
         """Detect PDF characteristics to select optimal processing mode."""
