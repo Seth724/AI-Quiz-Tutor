@@ -79,6 +79,47 @@ chatbot_service = PersonalizedChatbotService(
 )
 
 
+def _reconcile_stale_processing(document_id: str, document: Dict[str, Any]) -> Dict[str, Any]:
+    """Convert stale processing records to failed so UI does not show endless processing."""
+    status = str(document.get("status", "processing") or "processing")
+    if status != "processing":
+        return document
+
+    updated_at = safe_datetime(document.get("updated_at")) or safe_datetime(document.get("created_at"))
+    if updated_at is None:
+        return document
+
+    age_minutes = (datetime.utcnow() - updated_at).total_seconds() / 60.0
+    if age_minutes < PROCESSING_TIMEOUT_MINUTES:
+        return document
+
+    message = (
+        "Processing timed out. The background worker may have restarted. "
+        "Please retry upload."
+    )
+    processing_error = "processing_timeout"
+    now = datetime.utcnow()
+
+    documents_meta_collection.update_one(
+        {"_id": document_id},
+        {
+            "$set": {
+                "status": "failed",
+                "message": message,
+                "processing_error": processing_error,
+                "updated_at": now,
+            }
+        },
+    )
+
+    merged = dict(document)
+    merged["status"] = "failed"
+    merged["message"] = message
+    merged["processing_error"] = processing_error
+    merged["updated_at"] = now
+    return merged
+
+
 def _create_supabase_client() -> Optional[Any]:
     if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY:
         return None
@@ -693,7 +734,11 @@ async def upload_document(
 @router.get("/documents")
 async def list_documents(user_id: str):
     docs_cursor = list(documents_meta_collection.find({"user_id": user_id}).sort("created_at", DESCENDING))
-    docs = [serialize_document_meta(doc) for doc in docs_cursor]
+    docs = []
+    for doc in docs_cursor:
+        doc_id = str(doc.get("_id", ""))
+        normalized = _reconcile_stale_processing(doc_id, doc)
+        docs.append(serialize_document_meta(normalized))
 
     return {"documents": docs, "total": len(docs)}
 
@@ -703,7 +748,8 @@ async def get_document(document_id: str):
     document = documents_meta_collection.find_one({"_id": document_id})
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
-    return serialize_document_meta(document)
+    normalized = _reconcile_stale_processing(document_id, document)
+    return serialize_document_meta(normalized)
 
 
 @router.get("/documents/{document_id}/file")
@@ -733,34 +779,12 @@ async def get_document_status(document_id: str):
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
 
+    document = _reconcile_stale_processing(document_id, document)
+
     status = str(document.get("status", "processing") or "processing")
     message = str(document.get("message", "Processing") or "Processing")
     chunks_count = int(document.get("chunks_count", 0) or 0)
     processing_error = document.get("processing_error")
-
-    if status == "processing":
-        updated_at = safe_datetime(document.get("updated_at")) or safe_datetime(document.get("created_at"))
-        if updated_at is not None:
-            age_minutes = (datetime.utcnow() - updated_at).total_seconds() / 60.0
-            if age_minutes >= PROCESSING_TIMEOUT_MINUTES:
-                status = "failed"
-                message = (
-                    "Processing timed out. The background worker may have restarted. "
-                    "Please retry upload."
-                )
-                processing_error = "processing_timeout"
-
-                documents_meta_collection.update_one(
-                    {"_id": document_id},
-                    {
-                        "$set": {
-                            "status": status,
-                            "message": message,
-                            "processing_error": processing_error,
-                            "updated_at": datetime.utcnow(),
-                        }
-                    },
-                )
 
     return DocumentStatusResponse(
         document_id=document_id,

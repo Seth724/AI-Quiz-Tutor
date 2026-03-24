@@ -15,6 +15,29 @@ const STATUS_COLORS: Record<string, string> = {
 };
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+function getAgeLabel(value?: string): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const timestamp = new Date(value).getTime();
+  if (Number.isNaN(timestamp)) {
+    return null;
+  }
+
+  const minutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
+  if (minutes < 1) {
+    return 'just now';
+  }
+  if (minutes < 60) {
+    return `${minutes}m ago`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remain = minutes % 60;
+  return remain === 0 ? `${hours}h ago` : `${hours}h ${remain}m ago`;
+}
+
 export default function DocumentsPage() {
   const { user } = useUser();
 
@@ -26,6 +49,7 @@ export default function DocumentsPage() {
   const [processingDocumentId, setProcessingDocumentId] = useState<string | null>(null);
 
   const readyCount = useMemo(() => documents.filter((doc) => doc.status === 'ready').length, [documents]);
+  const processingCount = useMemo(() => documents.filter((doc) => doc.status === 'processing').length, [documents]);
 
   const loadDocuments = async (userId: string) => {
     try {
@@ -162,7 +186,7 @@ export default function DocumentsPage() {
             </Card>
             <Card>
               <p className="text-sm text-violet-100/70">Processing now</p>
-              <p className="text-3xl font-bold text-white">{processingDocumentId ? 1 : 0}</p>
+              <p className="text-3xl font-bold text-white">{processingCount || (processingDocumentId ? 1 : 0)}</p>
             </Card>
           </div>
 
@@ -216,6 +240,11 @@ export default function DocumentsPage() {
                       </span>
                       {!!doc.message && (
                         <p className="mt-2 max-w-2xl text-sm text-violet-100/80">{doc.message}</p>
+                      )}
+                      {doc.status === 'processing' && (
+                        <p className="mt-1 text-sm text-amber-100/90">
+                          Started: {getAgeLabel(doc.created_at) || 'unknown'} • Last update: {getAgeLabel(doc.updated_at) || 'unknown'}
+                        </p>
                       )}
                       {doc.status === 'failed' && !!doc.processing_error && (
                         <p className="mt-1 text-sm text-rose-200/90">Error: {doc.processing_error}</p>
