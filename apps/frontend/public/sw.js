@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quiz-tutor-v1';
+const CACHE_NAME = 'quiz-tutor-v2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.webmanifest',
@@ -7,6 +7,19 @@ const STATIC_ASSETS = [
   '/icons/icon-512.png',
   '/icons/apple-touch-icon.png',
 ];
+
+function isAuthNavigation(url) {
+  if (url.pathname.startsWith('/sign-in') || url.pathname.startsWith('/sign-up')) {
+    return true;
+  }
+
+  // Clerk appends auth handshake params during redirect completion.
+  if (url.searchParams.has('__clerk_db_jwt') || url.searchParams.has('__clerk_handshake')) {
+    return true;
+  }
+
+  return false;
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -39,6 +52,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (request.mode === 'navigate') {
+    if (isAuthNavigation(url)) {
+      event.respondWith(fetch(request));
+      return;
+    }
+
     event.respondWith(
       fetch(request)
         .then((response) => {
