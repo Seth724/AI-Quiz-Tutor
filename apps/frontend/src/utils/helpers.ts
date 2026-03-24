@@ -8,8 +8,29 @@ export const formatFileSize = (bytes: number): string => {
 
 export const APP_TIMEZONE = 'Asia/Colombo';
 
+const ISO_WITH_TZ_RE = /(Z|[+-]\d{2}:\d{2})$/i;
+
+export const parseApiDate = (date: string | Date): Date => {
+  if (date instanceof Date) {
+    return date;
+  }
+
+  if (typeof date !== 'string') {
+    return new Date(NaN);
+  }
+
+  const value = date.trim();
+  if (!value) {
+    return new Date(NaN);
+  }
+
+  // FastAPI may serialize naive UTC datetimes without timezone; interpret those as UTC.
+  const normalized = ISO_WITH_TZ_RE.test(value) ? value : `${value}Z`;
+  return new Date(normalized);
+};
+
 export const formatDate = (date: string | Date): string => {
-  const d = new Date(date);
+  const d = parseApiDate(date);
   if (Number.isNaN(d.getTime())) {
     return '';
   }
@@ -25,7 +46,7 @@ export const formatDate = (date: string | Date): string => {
 };
 
 export const formatMonthYear = (date: string | Date): string => {
-  const d = new Date(date);
+  const d = parseApiDate(date);
   if (Number.isNaN(d.getTime())) {
     return '';
   }

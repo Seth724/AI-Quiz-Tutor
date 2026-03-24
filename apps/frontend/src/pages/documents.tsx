@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, Card, FileUpload, Loading, SiteShell } from '@/components';
 import apiService from '@/services/api';
 import { Document, DocumentUploadResponse } from '@/types/api';
-import { formatDate, getErrorMessage } from '@/utils/helpers';
+import { formatDate, getErrorMessage, parseApiDate } from '@/utils/helpers';
 
 const STATUS_COLORS: Record<string, string> = {
   ready: 'border-emerald-300/45 bg-emerald-500/15 text-emerald-100',
@@ -20,7 +20,7 @@ function getAgeLabel(value?: string): string | null {
     return null;
   }
 
-  const timestamp = new Date(value).getTime();
+  const timestamp = parseApiDate(value).getTime();
   if (Number.isNaN(timestamp)) {
     return null;
   }
