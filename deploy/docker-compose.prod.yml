@@ -9,7 +9,7 @@ services:
       ENVIRONMENT: production
       LOG_LEVEL: INFO
       BACKEND_URL: https://${API_DOMAIN}
-      FRONTEND_ORIGIN_REGEX: https://.*\\.vercel\\.app
+      FRONTEND_ORIGIN_REGEX: https://.*\.vercel\.app
     expose:
       - "8000"
     healthcheck:

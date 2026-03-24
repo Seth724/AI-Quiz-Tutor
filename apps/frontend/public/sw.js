@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quiz-tutor-v2';
+const CACHE_NAME = 'quiz-tutor-v3';
 const STATIC_ASSETS = [
   '/',
   '/manifest.webmanifest',
@@ -23,7 +23,10 @@ function isAuthNavigation(url) {
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)).catch(() => undefined)
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => Promise.allSettled(STATIC_ASSETS.map((asset) => cache.add(asset))))
+      .catch(() => undefined)
   );
   self.skipWaiting();
 });
@@ -65,7 +68,15 @@ self.addEventListener('fetch', (event) => {
           if (cachedPage) {
             return cachedPage;
           }
-          return caches.match('/offline.html');
+          const offlinePage = await caches.match('/offline.html');
+          if (offlinePage) {
+            return offlinePage;
+          }
+
+          return new Response('Offline. Please reconnect and retry.', {
+            status: 503,
+            headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+          });
         })
     );
     return;
