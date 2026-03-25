@@ -107,6 +107,9 @@ class Settings:
     # Per-batch watchdog for Docling conversion on low-resource servers.
     DOCLING_BATCH_TIMEOUT_SECONDS: int = int(os.getenv("DOCLING_BATCH_TIMEOUT_SECONDS", "180"))
     DOCLING_PROGRESS_HEARTBEAT_SECONDS: int = int(os.getenv("DOCLING_PROGRESS_HEARTBEAT_SECONDS", "15"))
+    # OCR memory tuning for low-resource VPS deployments.
+    OCR_PDF_DPI: int = int(os.getenv("OCR_PDF_DPI", "170"))
+    OCR_MAX_IMAGE_DIM: int = int(os.getenv("OCR_MAX_IMAGE_DIM", "1800"))
     
     def validate(self):
         """Validate required settings"""

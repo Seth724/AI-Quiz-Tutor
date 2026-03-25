@@ -254,7 +254,8 @@ class DocumentService:
                     progress_callback(f"OCR page {page_position}/{total_target_pages}")
 
                 page = pdf.load_page(page_idx)
-                pix = page.get_pixmap(dpi=220)
+                render_dpi = max(120, int(getattr(settings, "OCR_PDF_DPI", 170) or 170))
+                pix = page.get_pixmap(dpi=render_dpi)
                 mode = "RGBA" if pix.alpha else "RGB"
                 image = Image.frombytes(mode, [pix.width, pix.height], pix.samples)
 
@@ -290,7 +291,7 @@ class DocumentService:
         working = ImageOps.exif_transpose(image).convert("RGB")
 
         # Downscale very large photos before OCR to prevent extreme CPU stalls.
-        max_allowed_dim = 2400
+        max_allowed_dim = max(1200, int(getattr(settings, "OCR_MAX_IMAGE_DIM", 1800) or 1800))
         current_max_dim = max(working.width, working.height)
         if current_max_dim > max_allowed_dim:
             downscale = max_allowed_dim / current_max_dim
