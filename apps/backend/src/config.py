@@ -97,6 +97,16 @@ class Settings:
     
     # Embedding Model
     EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"
+
+    # ===========================================
+    # Document Processing Controls
+    # ===========================================
+
+    # Optional override: simple_text | ocr_hybrid | ocr_full | docling_batch
+    FORCE_PROCESSING_MODE: str = os.getenv("FORCE_PROCESSING_MODE", "").strip().lower()
+    # Per-batch watchdog for Docling conversion on low-resource servers.
+    DOCLING_BATCH_TIMEOUT_SECONDS: int = int(os.getenv("DOCLING_BATCH_TIMEOUT_SECONDS", "180"))
+    DOCLING_PROGRESS_HEARTBEAT_SECONDS: int = int(os.getenv("DOCLING_PROGRESS_HEARTBEAT_SECONDS", "15"))
     
     def validate(self):
         """Validate required settings"""

@@ -13,9 +13,11 @@ import json
 import re
 import importlib
 import threading
+import time
 from enum import Enum
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Callable
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 from pymongo import MongoClient
 from llama_index.core import Document, VectorStoreIndex, StorageContext, Settings
 from llama_index.embeddings.huggingface_api import HuggingFaceInferenceAPIEmbedding
@@ -112,6 +114,20 @@ class DocumentService:
 
     def detect_processing_mode(self, file_path: str, sample_pages: int = 3) -> ProcessingMode:
         """Detect PDF characteristics to select optimal processing mode."""
+        forced_mode = str(getattr(settings, "FORCE_PROCESSING_MODE", "") or "").strip().lower()
+        if forced_mode:
+            mode_map = {
+                ProcessingMode.SIMPLE_TEXT.value: ProcessingMode.SIMPLE_TEXT,
+                ProcessingMode.OCR_HYBRID.value: ProcessingMode.OCR_HYBRID,
+                ProcessingMode.OCR_FULL.value: ProcessingMode.OCR_FULL,
+                ProcessingMode.DOCLING_BATCH.value: ProcessingMode.DOCLING_BATCH,
+            }
+            selected = mode_map.get(forced_mode)
+            if selected is not None:
+                print(f"📌 Forced processing mode: {selected.value}")
+                return selected
+            print(f"⚠️  Unknown FORCE_PROCESSING_MODE='{forced_mode}', using auto detection")
+
         try:
             import fitz
             pdf = fitz.open(file_path)
@@ -349,6 +365,9 @@ class DocumentService:
             pipeline_options.table_structure_options = TableStructureOptions(do_cell_matching=False, mode=TableFormerMode.FAST)
             pipeline_options.document_timeout = 300.0
             pipeline_options.accelerator_options = AcceleratorOptions(num_threads=2, device=AcceleratorDevice.CPU)
+
+            batch_timeout_seconds = max(30, int(getattr(settings, "DOCLING_BATCH_TIMEOUT_SECONDS", 180) or 180))
+            heartbeat_seconds = max(5, int(getattr(settings, "DOCLING_PROGRESS_HEARTBEAT_SECONDS", 15) or 15))
             
             converter = DocumentConverter(format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)})
             all_documents: List[Document] = []
@@ -360,7 +379,40 @@ class DocumentService:
                 print(f"  [{batch_start+1}-{batch_end}/{total_pages}]", end="")
 
                 try:
-                    result = converter.convert(file_path, page_range=(batch_start + 1, batch_end))
+                    executor = ThreadPoolExecutor(max_workers=1)
+                    future = executor.submit(converter.convert, file_path, page_range=(batch_start + 1, batch_end))
+                    started_at = time.monotonic()
+                    result = None
+
+                    try:
+                        while True:
+                            elapsed = time.monotonic() - started_at
+                            remaining = batch_timeout_seconds - elapsed
+                            if remaining <= 0:
+                                future.cancel()
+                                timeout_msg = (
+                                    f"Docling timeout on pages {batch_start + 1}-{batch_end}. "
+                                    "Switching to OCR fallback"
+                                )
+                                print(" ✗ timeout")
+                                print(f"⚠️  {timeout_msg}")
+                                if progress_callback:
+                                    progress_callback(timeout_msg)
+                                return []
+
+                            try:
+                                result = future.result(timeout=min(heartbeat_seconds, remaining))
+                                break
+                            except FutureTimeoutError:
+                                if progress_callback:
+                                    progress_callback(
+                                        f"Docling working on pages {batch_start + 1}-{batch_end}/{total_pages} "
+                                        f"({int(elapsed)}s elapsed)"
+                                    )
+                                continue
+                    finally:
+                        executor.shutdown(wait=False, cancel_futures=True)
+
                     if not result or not result.document:
                         print(" (empty)")
                         continue
