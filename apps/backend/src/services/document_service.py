@@ -91,6 +91,19 @@ class DocumentService:
         # EasyOCR is not thread-safe in this app's shared singleton usage.
         self._ocr_lock = threading.Lock()
         self._ocr_init_lock = threading.Lock()
+        self._docling_available: Optional[bool] = None
+
+    def _is_docling_available(self) -> bool:
+        if self._docling_available is not None:
+            return self._docling_available
+
+        try:
+            importlib.import_module("docling.document_converter")
+            self._docling_available = True
+        except Exception:
+            self._docling_available = False
+
+        return self._docling_available
 
     def _get_ocr_reader(self):
         """Create EasyOCR reader on first use, not during API startup."""
@@ -170,6 +183,10 @@ class DocumentService:
                 # Standard small text-heavy document
                 mode = ProcessingMode.SIMPLE_TEXT
                 print(f"  → {mode.value}: Standard text-heavy")
+
+            if mode == ProcessingMode.DOCLING_BATCH and not self._is_docling_available():
+                print("⚠️  Docling package not installed. Falling back to OCR_HYBRID mode.")
+                return ProcessingMode.OCR_HYBRID
             
             return mode
         except Exception as e:
@@ -443,6 +460,8 @@ class DocumentService:
             return all_documents
         except ImportError:
             print("⚠️  Docling unavailable, fallback to simple PDF")
+            if progress_callback:
+                progress_callback("Docling unavailable. Falling back to simple extraction")
             return self.process_pdf_simple(file_path, use_hybrid=False)
         except Exception as e:
             print(f"❌ Docling error: {e}, fallback")

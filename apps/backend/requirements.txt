@@ -49,5 +49,5 @@ supabase
 # Production
 gunicorn
 
-# Optional: Docling (for complex PDFs with tables)
-# Install only if needed: pip install llama-index-readers-docling
+# Docling (complex PDFs, table-structure extraction)
+docling
