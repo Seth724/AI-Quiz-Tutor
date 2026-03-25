@@ -1,6 +1,16 @@
 # Quiz Tutor Frontend
 
-Modern React-based frontend for the Quiz Tutor application. Built with **Next.js 16**, **TypeScript**, and **Tailwind CSS**.
+Modern React-based frontend for the Quiz Tutor application. Built with **Next.js 16**, **TypeScript**, **Tailwind CSS**, and **Clerk authentication**.
+
+## ✅ What's Fixed
+
+Recent production fixes verified:
+
+1. **Auth Redirect Loops** → Service worker now bypasses Clerk auth routes
+2. **Timezone Display** → Fixed UTC parsing on API responses
+3. **Processing Status** → Real-time elapsed time indicators
+4. **PWA Offline** → Service worker v3 with proper fallback
+5. **Mobile UI** → Responsive design for all screen sizes
 
 ## 📁 Project Structure
 
@@ -28,11 +38,12 @@ src/
 
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Local)
 
 ### Prerequisites
 - Node.js 18+
 - npm or yarn
+- Backend running at http://localhost:8000
 
 ### Installation
 
@@ -40,14 +51,20 @@ src/
 # Install dependencies
 npm install
 
-# Set up environment variables
-# (Already configured in .env.local)
-
 # Start development server
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Test Full Flow
+
+1. Sign in with Clerk (dev keys pre-configured)
+2. Upload a PDF from backend
+3. Watch processing status update in real-time
+4. Generate quiz from document
+5. Take quiz
+6. Chat about document
 
 ## 📋 Features
 
@@ -79,15 +96,124 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
   - Quiz generation
   - Error handling and response parsing
 
-## 🔧 Configuration
+## � Production Deployment (Vercel)
 
-### Environment Variables (`.env.local`)
+AI Quiz Tutor frontend is optimized for deployment on **Vercel** (free tier).
 
+### Prerequisites
+
+- GitHub account with repository pushed
+- Vercel account (free signup at https://vercel.com)
+- Backend deployed and accessible at a public URL (e.g., `https://api.yourdomain.com`)
+
+### Deployment Steps
+
+1. **Ensure code is pushed to GitHub**
+   ```bash
+   git add .
+   git commit -m "Ready for deployment"
+   git push origin main
+   ```
+
+2. **Connect to Vercel**
+   - Go to: https://vercel.com
+   - Sign in with GitHub
+   - Click "Add New" → "Project"
+   - Select `ai-quiz-tutor` repository
+
+3. **Configure Project**
+   - Root Directory: `apps/frontend` ✓ (Vercel auto-detects)
+   - Framework: `Next.js` (auto-selected)
+   - Build Command: `npm run build` (default)
+   - Output Directory: `.next` (default)
+
+4. **Set Environment Variables**
+   
+   In Vercel dashboard, go to Settings → Environment Variables:
+   
+   ```
+   NEXT_PUBLIC_API_URL = https://api.yourdomain.com
+   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = [your_clerk_key]
+   ```
+
+   (Get these from your `.env.local`)
+
+5. **Deploy**
+   - Click "Deploy"
+   - Wait for build to complete (~3 min)
+   - Get your Vercel URL: `https://your-project.vercel.app`
+
+### Custom Domain
+
+1. **Point DNS to Vercel**
+   - In Vercel Dashboard → Domains
+   - Add your domain (e.g., `yourdomain.com`)
+   - Follow DNS setup instructions
+   - Usually: Create `CNAME` record or update `A` record
+
+2. **Optional: WWW Subdomain**
+   - Vercel auto-configures `www.yourdomain.com` → `yourdomain.com`
+
+### Environment Variables for Production
+
+Update in Vercel Dashboard (Settings → Environment Variables):
+
+```env
+# Backend API (must be HTTPS in production)
+NEXT_PUBLIC_API_URL=https://api.yourdomain.com
+
+# Clerk (usually same as local, but can use production keys)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_...
 ```
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
 
-Update the API URL if your backend runs on a different port or host.
+### Verify It Works
+
+1. Visit your Vercel URL
+2. Sign in with Clerk
+3. Check backend connectivity in browser console (no CORS errors)
+4. Upload a document
+5. Verify it appears in document list
+
+### CI/CD (Automatic Deployments)
+
+Enabled by default:
+- **Push to main** → Auto-triggers build on Vercel
+- **Pull Requests** → Preview deployment (temporary URL)
+- **Rollback**: Vercel keeps 5 previous deployments
+
+### Troubleshooting
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `CORS error` (browser console) | Backend URL wrong | Check `NEXT_PUBLIC_API_URL` in Vercel env vars |
+| `Cannot sign in` | Clerk keys wrong | Verify Clerk publishable key in Vercel env vars |
+| `404 on pages` | Build failed | Check Vercel build logs for errors |
+| `Slow page load` | API slow | Check backend performance; may need async optimization |
+| `Static export error` | Dynamic route issue | Ensure routes are properly configured |
+
+### Performance Tips
+
+- Images: Vercel auto-compresses
+- CSS: TailwindCSS already optimized
+- JavaScript: Next.js auto-code-splits
+- Caching: Vercel auto-caches static assets
+
+### Monitoring
+
+In Vercel Dashboard:
+- **Deployments** → See all versions
+- **Logs** → Real-time logs
+- **Analytics** → Performance metrics
+- **Settings** → Update env vars anytime
+
+### Redeploy Without Code Changes
+
+In Vercel Dashboard:
+1. Go to Deployments
+2. Click "..." on recent deployment
+3. Select "Redeploy"
+
+(Useful if you only changed backend API)
 
 ## 📦 Dependencies
 

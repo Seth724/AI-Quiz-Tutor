@@ -1,103 +1,340 @@
-# ✅ Backend Setup Complete - Using Your Tutorial-3 Code!
+# Complete Setup Guide
 
-## What's Been Created
+Get AI Quiz Tutor running locally or deployed to production. This guide covers both paths.
 
-### 📁 Complete Structure
+## 🎯 What This Project Does
 
-```
-quiz-tutor/apps/backend/
-├── src/
-│   ├── main.py                 # FastAPI app
-│   ├── config.py               # Settings (tutorial-3 pattern)
-│   ├── api/
-│   │   ├── routes.py           # API endpoints
-│   │   └── schemas.py          # Pydantic models
-│   └── services/
-│       ├── document_service.py     # Uses YOUR tutorial-3 code
-│       └── quiz_service.py         # Groq quiz generation
-├── requirements.txt            # Updated with tutorial-3 packages
-├── .env.example
-├── test_backend.py             # Tests with tutorial-3 code
-├── QUICK_START.md              # Quick setup guide
-├── SETUP.md                    # Full setup guide
-└── README.md                   # Documentation
-```
+- **Upload** PDFs and images
+- **Automatically extract** text, tables, and structured content using smart detection
+- **Generate** LLM-powered quizzes
+- **Chat** with AI tutor about document content
+- **Track progress** and identify weak areas
+- **Install as PWA** on phone for offline access
 
----
+## ⚡ Quick Start (Local - 10 minutes)
 
-## 🎯 Uses YOUR Working Tutorial-3 Code
+### Prerequisites
+- Python 3.11+
+- Node.js 18+
+- Free API keys (get them below)
 
-### From `tutorial-3-mongodb/`:
+### Step 1: Get Free API Keys
 
-| Your File | Backend Service | What It Does |
-|-----------|----------------|--------------|
-| `pdf_rag_simple.py` | `document_service.py` | PDF processing with PDFReader |
-| `pdf_rag_complete.py` | `document_service.py` | Production features (hierarchical nodes) |
-| `simple_ocr.py` | `document_service.py` | OCR with EasyOCR |
-| `demo_retrieval_methods.py` | `document_service.py` | MongoDB vector search |
-| `pdf_rag_mongodb.py` | `document_service.py` | MongoDB RAG pipeline |
-| `config.py` pattern | `config.py` | Settings management |
+1. **Groq** (LLM - fast inference)
+   - Go to: https://console.groq.com/keys
+   - Create account → Generate API key
+   - Copy the key (starts with `gsk_`)
 
----
+2. **HuggingFace** (Embeddings)
+   - Go to: https://huggingface.co/settings/tokens
+   - Create account → New token
+   - Copy the token
 
-## 📦 Requirements (From Your Tutorial-3)
+3. **MongoDB** (Database with vector search)
+   - Go to: https://cloud.mongodb.com
+   - Create account → New project → Create cluster (M0 free tier)
+   - Go to Drivers → Copy connection string
+   - Format: `mongodb+srv://username:password@cluster.mongodb.net/quiz_tutor?retryWrites=true&w=majority`
 
-### Core Packages (Already in Your VENV)
-```txt
-llama-index-core==0.10.19
-llama-index-llms-groq==0.0.3
-llama-index-embeddings-huggingface-api==0.1.6
-llama-index-vector-stores-mongodb==0.1.6
-llama-index-readers-file==0.1.22
-```
+### Step 2: Backend Setup
 
-### OCR (from simple_ocr.py)
-```txt
-easyocr==1.7.0
-pillow==10.2.0
-```
+Open PowerShell/Terminal in project root, then:
 
-### Web & Database
-```txt
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-pymongo==4.6.1
-motor==3.3.2
-```
+```powershell
+# Navigate to backend
+cd apps/backend
 
----
+# Create virtual environment
+python -m venv venv
 
-## 🧪 Quick Test (Using Your Root VENV)
-
-Since you already have a working venv from tutorial-3:
-
-```bash
-# From root directory
-cd D:\MetaruneLabs\rag-llamaindex-docling
-
-# Activate your existing venv
+# Activate it (Windows)
 venv\Scripts\activate
+# or macOS/Linux
+source venv/bin/activate
 
-# Go to backend
-cd quiz-tutor\apps\backend
+# Install dependencies
+pip install -r requirements.txt
 
-# Copy environment
+# Copy environment template
 copy .env.example .env
 
-# Edit .env (or copy from tutorial-3)
+# Edit .env with your API keys
 notepad .env
+```
 
-# Test
+**Edit `.env`:**
+```env
+GROQ_API_KEY=gsk_your_key_here
+HF_TOKEN=hf_your_token_here
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/quiz_tutor?retryWrites=true&w=majority
+MONGODB_DATABASE=quiz_tutor
+```
+
+**Test backend:**
+```powershell
 python test_backend.py
 ```
 
-**Expected Output:**
-```
-============================================================
-Testing AI Quiz Tutor Backend
-============================================================
+Should see: `✅ All systems working!`
 
-Using working code from tutorial-3-mongodb:
+**Start backend:**
+```powershell
+python src/main.py
+```
+
+Visit: http://localhost:8000/docs (API documentation)
+
+### Step 3: Frontend Setup
+
+In **new terminal**, navigate to project root:
+
+```bash
+cd apps/frontend
+npm install
+npm run dev
+```
+
+Visit: http://localhost:3000
+
+### Step 4: Test Full Flow
+
+1. Sign in (Clerk dev keys pre-configured)
+2. Upload a PDF (test file: any PDF works)
+3. Wait for processing → Watch elapsed time indicator
+4. Generate quiz from document
+5. Chat with AI about the document
+
+---
+
+## 🚀 Production Deployment (VPS + Vercel)
+
+### Architecture
+
+```
+Frontend (Vercel)
+├─ HTTPS: yourdomain.com
+└─ Auto-deploys from GitHub
+
+Backend (VPS - $12/mo)
+├─ HTTPS: api.yourdomain.com
+├─ Docker Compose
+├─ Nginx reverse proxy
+├─ Gunicorn + Uvicorn
+└─ Memory-tuned for 1.5GB RAM
+
+Database & Storage
+├─ MongoDB Atlas (free)
+├─ Supabase (free, optional)
+└─ Let's Encrypt SSL
+```
+
+### Prerequisites
+
+- VPS: DigitalOcean / Linode ($12/mo or equivalent)
+- Domain: Any registrar (example: namecheap.com)
+- GitHub account for frontend
+- MongoDB Atlas and other free API keys (same as local)
+
+### Part 1: Prepare Backend VPS
+
+**On VPS via SSH:**
+
+```bash
+# Update packages
+sudo apt update && sudo apt upgrade -y
+
+# Install dependencies
+sudo apt install -y docker.io docker-compose git certbot python3-certbot-nginx nginx
+
+# Start Docker
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# Add current user to docker group (avoid sudo)
+sudo usermod -aG docker $USER
+exit  # Logout and log back in for group changes to take effect
+
+# Clone repository
+git clone https://github.com/YOUR_USERNAME/ai-quiz-tutor
+cd ai-quiz-tutor
+```
+
+**Create `.env.backend`:**
+
+```bash
+cat > .env.backend << 'EOF'
+# API Keys
+GROQ_API_KEY=gsk_your_key
+HF_TOKEN=hf_your_token
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/quiz_tutor?retryWrites=true&w=majority
+
+# Environment
+ENVIRONMENT=production
+FRONTEND_ORIGINS=https://yourdomain.com
+
+# OCR Memory Tuning (for 1.5GB RAM)
+OCR_PDF_DPI=150
+OCR_MAX_IMAGE_DIM=1400
+
+# Docling Settings
+DOCLING_BATCH_TIMEOUT_SECONDS=120
+DOCLING_PROGRESS_HEARTBEAT_SECONDS=10
+
+# MongoDB
+MONGODB_DATABASE=quiz_tutor
+EOF
+```
+
+**Add 4GB Swap** (prevents SIGKILL on memory spike):
+
+```bash
+sudo fallocate -l 4G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+# Make permanent
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+**Build and Start Backend:**
+
+```bash
+# Build Docker image
+docker build -t quiz-tutor-backend -f apps/backend/Dockerfile apps/backend
+
+# Start services
+docker compose --env-file .env.backend -f deploy/docker-compose.prod.yml up -d
+
+# Verify running
+docker logs -f quiz-tutor-backend
+```
+
+**Set Up HTTPS (Let's Encrypt):**
+
+```bash
+# Get domain first, then point DNS to VPS IP
+
+# Create Nginx config (see deploy/nginx.conf)
+sudo cp deploy/nginx.conf /etc/nginx/sites-available/quiz-tutor
+sudo ln -s /etc/nginx/sites-available/quiz-tutor /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+
+# Get SSL certificate
+sudo certbot certonly --nginx -d api.yourdomain.com
+
+# Update Nginx with SSL
+# (See deploy/nginx.conf for full config)
+```
+
+**Test backend is accessible:**
+
+```bash
+curl https://api.yourdomain.com/  # Should see Swagger UI
+```
+
+### Part 2: Deploy Frontend to Vercel
+
+1. **Push to GitHub**
+   ```bash
+   git remote set-url origin https://github.com/YOUR_USERNAME/ai-quiz-tutor
+   git push origin main
+   ```
+
+2. **Connect to Vercel**
+   - Go to: https://vercel.com
+   - Click "Add New" → "Project"
+   - Select `ai-quiz-tutor` repository
+   - Select `apps/frontend` as root directory
+   - Add environment variable:
+     ```
+     NEXT_PUBLIC_API_URL=https://api.yourdomain.com
+     ```
+   - Click Deploy
+
+3. **Point Domain**
+   - Go to Vercel Dashboard → Domains
+   - Add your domain → Follow DNS setup
+   - Or create `CNAME` record pointing to Vercel
+
+**Test frontend:**
+
+```
+Visit: https://yourdomain.com
+Sign in with Clerk
+Upload document
+```
+
+### Part 3: Monitor Production
+
+**Backend logs:**
+```bash
+docker logs -f quiz-tutor-backend
+
+# Search for errors
+docker logs quiz-tutor-backend | grep ERROR
+
+# Watch for OOM
+docker logs quiz-tutor-backend | grep SIGKILL
+```
+
+**Vercel dashboard:**
+- https://vercel.com/dashboard
+- View deployments, logs, analytics
+
+**MongoDB usage:**
+- https://cloud.mongodb.com
+- View storage, query performance
+
+---
+
+## 🐛 Common Issues
+
+### Local Setup
+
+| Problem | Solution |
+|---------|----------|
+| `Module not found: groq` | Run `pip install -r requirements.txt` |
+| `GROQ_API_KEY not set` | Edit `.env` and restart backend |
+| `MongoDB connection refused` | Check MongoDB URI and IP whitelist in Atlas |
+| `Port 3000 already in use` | Kill process: `lsof -ti:3000 \| xargs kill` |
+| `Cannot import docling` | Run `pip install docling` |
+
+### Production VPS
+
+| Problem | Solution |
+|---------|----------|
+| `SIGKILL in logs` | Add swap: see "Add 4GB Swap" above |
+| `Worker is dead` | Check logs: `docker logs quiz-tutor-backend` |
+| `Certificate error` | Renew: `sudo certbot renew --dry-run` |
+| `Backend unreachable` | Check VPS firewall: `sudo ufw status` |
+| `PDF stuck processing` | Check worker memory: `free -m` |
+
+---
+
+## 📊 Scaling
+
+### Current Setup Handles
+- **Local (dev machine)**: Unlimited (your machine resources)
+- **VPS $12/mo**: ~100-200 concurrent users per document
+- **MongoDB free**: ~512MB (accommodates ~500K vectors)
+- **Vercel free**: Up to 100GB bandwidth/month
+
+### To Scale Production
+1. **More concurrent uploads** → Add VPS memory (upgrade to $24/mo with 4GB RAM)
+2. **More users** → Load balance multiple backend instances
+3. **Database** → Upgrade MongoDB to M2+ tier ($57/mo)
+4. **Bandwidth** → Stay under 100GB/mo or add Cloudflare CDN
+
+---
+
+## 📚 Next Steps
+
+1. ✅ [Local Development Complete](apps/backend/QUICK_START.md)
+2. → [Deploy to Production VPS](apps/backend/SETUP.md#production-deployment)
+3. → [Frontend on Vercel](apps/frontend/README.md#deployment)
+4. → [Production Validation](docs/PRODUCTION_READINESS.md)
   - pdf_rag_simple.py (PDF processing)
   - pdf_rag_complete.py (production features)
   - simple_ocr.py (OCR for images)
